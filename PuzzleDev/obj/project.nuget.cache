@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "snMMhezinjPMOfVyTHGiZVJ0W6V4+EISNjbVEEA9Glv6WWvKRaVLndKN23BY7lzEfxw+ZmdFnB9cBnWFe7m+hA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\victo\\source\\repos\\PuzzleDev\\PuzzleDev\\PuzzleDev.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\victo\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.0\\microsoft.netcore.platforms.3.1.0.nupkg.sha512",
+    "C:\\Users\\victo\\.nuget\\packages\\microsoft.win32.systemevents\\4.7.0\\microsoft.win32.systemevents.4.7.0.nupkg.sha512",
+    "C:\\Users\\victo\\.nuget\\packages\\system.drawing.common\\4.7.0\\system.drawing.common.4.7.0.nupkg.sha512"
+  ],
+  "logs": []
+}
