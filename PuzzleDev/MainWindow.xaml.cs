@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -29,6 +31,20 @@ namespace PuzzleDev
         static Exten()
         {
             imageDatas1 = new List<ImageData[]>();
+        }
+
+        public static Bitmap BitmapImage2Bitmap(BitmapImage bitmapImage)
+        {
+
+            using (MemoryStream outStream = new MemoryStream())
+            {
+                BitmapEncoder enc = new BmpBitmapEncoder();
+                enc.Frames.Add(BitmapFrame.Create(bitmapImage));
+                enc.Save(outStream);
+                System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(outStream);
+
+                return new Bitmap(bitmap);
+            }
         }
         public static BitmapImage ToBitmapImage(this Bitmap bitmap)
         {
@@ -58,7 +74,7 @@ namespace PuzzleDev
                 encoder.Save(fileStream);
             }
         }
-        public static List<bool> GetHash(Bitmap bmpSource)
+        public static List<bool> GetHash(Bitmap bmpSource,string side)
         {
             List<bool> lResult = new List<bool>();
             Bitmap bmpMin = new Bitmap(bmpSource, new System.Drawing.Size(16, 16));
@@ -66,7 +82,21 @@ namespace PuzzleDev
             {
                 for (int i = 0; i < bmpMin.Width; i++)
                 {
-                    lResult.Add(bmpMin.GetPixel(i, j).GetBrightness() < 0.5f);
+                    switch (side)
+                    {
+                        case "right":
+                            lResult.Add(bmpMin.GetPixel(bmpMin.Width - 1, j).GetBrightness() < 0.5f);
+                            break;
+                        case "left":
+                            lResult.Add(bmpMin.GetPixel(0, j).GetBrightness() < 0.5f);
+                            break;
+                        case "top":
+                            lResult.Add(bmpMin.GetPixel(i, bmpMin.Height - 1).GetBrightness() < 0.5f);
+                            break;
+                        case "down":
+                            lResult.Add(bmpMin.GetPixel(i, 0).GetBrightness() < 0.5f);
+                            break;
+                    }
                 }
             }
             return lResult;
@@ -124,8 +154,10 @@ namespace PuzzleDev
 
         static int max = Int32.MaxValue / 20;
 
+
         ImageData[] imagesTotal = new ImageData[max];
 
+        //Bitmap[] imagesbitTotal = new Bitmap[max];
 
         public MainWindow()
         {
@@ -269,65 +301,127 @@ namespace PuzzleDev
             e.Effects = DragDropEffects.Copy;
         }
 
-        public int Check_C(ImageData[] imageDatas)
+        //public int Check_C(ImageData[] imageDatas)
+        //{
+        //    int imageWidth = 500;
+        //    int imageHeight = 500;
+        //    DrawingVisual drawingVisual = new DrawingVisual();
+        //    using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+        //    {
+
+        //        int num = 0;
+
+        //        for (int i = 0; i < h; i++)
+        //        {
+        //            for (int j = 0; j < w; j++)
+        //            {
+        //                drawingContext.DrawImage(imageDatas[num].Images, new Rect(j * imageHeight, i * imageWidth, imageWidth, imageHeight));
+        //                num++;
+        //            }
+        //        }
+        //    }
+        //    RenderTargetBitmap bmp = new RenderTargetBitmap(imageWidth * w, imageHeight * h, 96, 96, PixelFormats.Pbgra32);
+        //    bmp.Render(drawingVisual);
+
+        //    MemoryStream stream = new MemoryStream();
+        //    BitmapEncoder encoder = new BmpBitmapEncoder();
+        //    encoder.Frames.Add(BitmapFrame.Create(bmp));
+        //    encoder.Save(stream);
+        //    Bitmap bitmap = new Bitmap(stream);
+        //    //System.Drawing.Image img = System.Drawing.Image.FromStream(stream);
+        //    //img.Save(@"C:\Users\victo\source\repos\PuzzleDev\PuzzleDev\full_recon.jpg");
+        //    Bitmap bmp2 = new Bitmap(startupPath + "\\full.jpg");
+        //    Bitmap bmp3 = new Bitmap(bmp2, new System.Drawing.Size(imageWidth * w, imageHeight * h));
+        //    bmp3.SetResolution(96, 96);
+
+        //    //bmp3.Save(@"C:\Users\victo\source\repos\PuzzleDevCom\PuzzleDevCom\Pictures\full2.jpg");
+
+
+        //    List<bool> iHash1 = Exten.GetHash(bitmap);
+        //    List<bool> iHash2 = Exten.GetHash(bmp3);
+
+        //    int count = 0;
+        //    for (int i = 0; i < iHash1.Count; i++)
+        //    {
+        //        if (iHash1[i] != iHash2[i])
+        //        {
+        //            count += 1;
+        //        }
+        //    }
+        //    return count;
+        //}
+
+        public int Check_C(ImageData[] arr1)
         {
-            int imageWidth = 500;
-            int imageHeight = 500;
-            DrawingVisual drawingVisual = new DrawingVisual();
-            using (DrawingContext drawingContext = drawingVisual.RenderOpen())
+
+            Bitmap[] imageDatas = new Bitmap[h * w];
+            int f1 = 0;
+            for (int i = 0; i < h * w; i++)
             {
-
-                int num = 0;
-
-                for (int i = 0; i < h; i++)
+                imageDatas[f1] = Exten.BitmapImage2Bitmap(arr1[f1].Images);
+                f1++;
+            }
+            Bitmap[,] arr = new Bitmap[h, w];
+            int num = 0;
+            for (int i = 0; i < h; i++)
+            {
+                for (int j = 0; j < w; j++)
                 {
-                    for (int j = 0; j < w; j++)
+                    arr[i, j] = imageDatas[num];
+                    num++;
+                }
+            }
+            string Hash1 = "";
+            string Hash2 = "";
+
+            int count = 0;
+            for (int i = 0; i < h; i++)
+            {
+                for (int j = 0; j < w; j++)
+                {
+                    Hash1 += "\n";
+                    Hash2 += "\n";
+                    if (i - 1 >= 0)
                     {
-                        drawingContext.DrawImage(imageDatas[num].Images, new Rect(j * imageHeight, i * imageWidth, imageWidth, imageHeight));
-                        num++;
+                        List<bool> iHash1 = Exten.GetHash(arr[i, j], "down");
+                        List<bool> iHash2 = Exten.GetHash(arr[i - 1, j], "top");
+                        for (int f = 0; f < iHash1.Count; f++)
+                        {
+                            if (iHash1[f] != iHash2[f])
+                            {
+                                count += 1;
+                            }
+                        }
+                    }
+                    if (j - 1 >= 0)
+                    {
+                        List<bool> iHash1 = Exten.GetHash(arr[i, j], "left");
+                        List<bool> iHash2 = Exten.GetHash(arr[i, j - 1], "right");
+                        for (int f = 0; f < iHash1.Count; f++)
+                        {
+                            Hash1 += iHash1[f].ToString();
+                            Hash2 += iHash2[f].ToString();
+                            if (iHash1[f] != iHash2[f])
+                            {
+                                count += 1;
+                            }
+                        }
                     }
                 }
             }
-            RenderTargetBitmap bmp = new RenderTargetBitmap(imageWidth * w, imageHeight * h, 96, 96, PixelFormats.Pbgra32);
-            bmp.Render(drawingVisual);
-
-            MemoryStream stream = new MemoryStream();
-            BitmapEncoder encoder = new BmpBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(bmp));
-            encoder.Save(stream);
-            Bitmap bitmap = new Bitmap(stream);
-            //System.Drawing.Image img = System.Drawing.Image.FromStream(stream);
-            //img.Save(@"C:\Users\victo\source\repos\PuzzleDev\PuzzleDev\full_recon.jpg");
-            Bitmap bmp2 = new Bitmap(startupPath + "\\full.jpg");
-            Bitmap bmp3 = new Bitmap(bmp2, new System.Drawing.Size(imageWidth * w, imageHeight * h));
-            bmp3.SetResolution(96, 96);
-
-            //bmp3.Save(@"C:\Users\victo\source\repos\PuzzleDevCom\PuzzleDevCom\Pictures\full2.jpg");
-
-
-            List<bool> iHash1 = Exten.GetHash(bitmap);
-            List<bool> iHash2 = Exten.GetHash(bmp3);
-
-            int count = 0;
-            for (int i = 0; i < iHash1.Count; i++)
-            {
-                if (iHash1[i] != iHash2[i])
-                {
-                    count += 1;
-                }
-            }
+            
             return count;
         }
-        private  void Check_Click(object sender, RoutedEventArgs e)
+        private void Check_Click(object sender, RoutedEventArgs e)
         {
             int c = Check_C(imagesTotal);
             if (c < 3)
             {
-                this.listik.Content = "You win";
+                this.listik.Content = "You win!";
             }
             else
             {
-                this.listik.Content = "Try again";
+                this.listik.Content = c;
             }
         }
 
@@ -379,6 +473,10 @@ namespace PuzzleDev
                 System.Drawing.Rectangle ImageSize = new System.Drawing.Rectangle(0, 0, 50, 50);
                 graph.FillRectangle(System.Drawing.Brushes.White, ImageSize);
             }
+            //for (int i = 0; i < fCount; i++)
+            //{
+            //    imagesbitTotal[i] = bmp;
+            //}
             for (int i = 0; i < fCount; i++)
             {
                 images2[i] = new ImageData { Images = Exten.ToBitmapImage(bmp) };
@@ -390,6 +488,7 @@ namespace PuzzleDev
             {
                 imagesTotal[i] = (ImageData)piccc3.Items[i];
             }
+
         }
 
         private void Auto_Click(object sender, RoutedEventArgs e)
@@ -401,14 +500,14 @@ namespace PuzzleDev
             {
                 images_r[i] = (ImageData)piccc2.Items[i];
             }
-            Exten.heapPermutation(images_r, size,size);
-            Dictionary<int,(int, ImageData[])> res = new Dictionary<int, (int, ImageData[])>(Exten.imageDatas1.Count);
-            for (int i=0;i< Exten.imageDatas1.Count; i++)
+            Exten.heapPermutation(images_r, size, size);
+            Dictionary<int, (int, ImageData[])> res = new Dictionary<int, (int, ImageData[])>(Exten.imageDatas1.Count);
+            for (int i = 0; i < Exten.imageDatas1.Count; i++)
             {
-                res.Add(i,(Check_C(Exten.imageDatas1[i]), Exten.imageDatas1[i]));
+                res.Add(i, (Check_C(Exten.imageDatas1[i]), Exten.imageDatas1[i]));
             }
             var keyAndValue = res.OrderBy(kvp => kvp.Value.Item1).First();
-            this.listik.Content = "Done";
+            this.listik.Content = "Done"; //+ keyAndValue.Value.Item1;
             this.piccc3.Width = 100 * w;
             this.piccc3.Height = 100 * h;
             this.piccc3.ItemsSource = keyAndValue.Value.Item2;
